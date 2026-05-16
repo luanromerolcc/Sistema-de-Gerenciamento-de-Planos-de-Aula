@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals'
 import request from 'supertest'
-import { buildApp } from '../src/app.js'
+import { buildApp } from '../../src/app.js'
 
 describe('Health Check', () => {
   let app

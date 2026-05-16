@@ -42,11 +42,13 @@
     "supertest": "^7.0.0"
   },
   "jest": {
-    "testEnvironment": "node",
-    "transform": {},
-    "testMatch": ["**/tests/**/*.test.js"],
-    "coverageDirectory": "coverage",
-    "collectCoverageFrom": ["src/**/*.js"]
+  "testEnvironment": "node",
+  "transform": {},
+  "testMatch": ["**/tests/**/*.test.js"],
+  "coverageDirectory": "coverage",
+  "collectCoverageFrom": ["src/**/*.js"],
+  "globals": {}
+}
   },
   "engines": {
     "node": ">=20"
