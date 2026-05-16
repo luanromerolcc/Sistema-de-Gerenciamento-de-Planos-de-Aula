@@ -1,25 +1,23 @@
-# Frontend Dockerfile - Multi-stage build
-FROM node:20-alpine AS builder
-
+# Dev stage
+FROM node:20-alpine AS dev
 WORKDIR /app
-
-# Install dependencies
 COPY package*.json ./
 RUN npm ci
+COPY . .
+EXPOSE 5173
+CMD ["npm", "run", "dev", "--", "--host"]
 
-# Build
+# Build stage
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
 COPY . .
 RUN npm run build
 
-# Stage 2: Production server
+# Production stage
 FROM nginx:alpine
-
-# Copy nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf
-
-# Copy built app
 COPY --from=builder /app/dist /usr/share/nginx/html
-
-EXPOSE 3000
-
+EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]

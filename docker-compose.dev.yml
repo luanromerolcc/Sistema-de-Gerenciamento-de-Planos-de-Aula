@@ -6,8 +6,8 @@ services:
     container_name: postgres-dev
     restart: always
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: pass
+      POSTGRES_USER: lessonuser
+      POSTGRES_PASSWORD: lessonpass
       POSTGRES_DB: lessonplans
     ports:
       - '5432:5432'
@@ -40,13 +40,16 @@ services:
   frontend:
     build:
       context: ./frontend
+      target: dev
     container_name: frontend-dev
     restart: always
     ports:
       - '5173:5173'
     volumes:
       - ./frontend/src:/app/src
-    command: npm run dev
+    environment:
+      - VITE_API_URL=http://localhost:3000/api
+    command: npm run dev -- --host
     depends_on:
       - backend
 

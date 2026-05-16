@@ -40,3 +40,64 @@ export const restoreParamSchema = z.object({
   id: z.string().cuid(),
   vid: z.string().cuid(),
 })
+
+export const lessonPlanSchema = {
+  list: {
+    querystring: {
+      type: 'object',
+      properties: {
+        discipline: { type: 'string' },
+        search: { type: 'string' },
+        page: { type: 'integer' },
+        pageSize: { type: 'integer' },
+      },
+    },
+  },
+  create: {
+    body: {
+      type: 'object',
+      required: ['title', 'objective', 'summary', 'scheduledAt', 'discipline', 'contents'],
+      properties: {
+        title: { type: 'string' },
+        objective: { type: 'string' },
+        summary: { type: 'string' },
+        scheduledAt: { type: 'string' },
+        discipline: { type: 'string' },
+        contents: { type: 'string' },
+        resources: { type: 'string' },
+        tags: { type: 'array', items: { type: 'string' } },
+      },
+    },
+  },
+  get: {
+    params: {
+      type: 'object',
+      properties: { id: { type: 'string' } },
+    },
+  },
+  update: {
+    params: {
+      type: 'object',
+      properties: { id: { type: 'string' } },
+    },
+    body: {
+      type: 'object',
+      properties: {
+        title: { type: 'string' },
+        objective: { type: 'string' },
+        summary: { type: 'string' },
+        scheduledAt: { type: 'string' },
+        discipline: { type: 'string' },
+        contents: { type: 'string' },
+        resources: { type: 'string' },
+        tags: { type: 'array', items: { type: 'string' } },
+      },
+    },
+  },
+  delete: {
+    params: {
+      type: 'object',
+      properties: { id: { type: 'string' } },
+    },
+  },
+}

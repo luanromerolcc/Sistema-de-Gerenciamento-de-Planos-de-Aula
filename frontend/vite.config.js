@@ -17,7 +17,6 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
-    minify: 'terser',
   },
   optimizeDeps: {
     include: ['react', 'react-dom', '@tanstack/react-query', 'zustand', 'axios'],

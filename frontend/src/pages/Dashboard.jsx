@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Card, CardBody, CardHeader } from '../components/ui/Card'
 import { Badge } from '../components/ui/Badge'
 import { SkeletonLoader, SkeletonGrid } from '../components/ui/SkeletonLoader'
+import { api } from '../services/api'
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null)
@@ -11,12 +12,11 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/analytics/dashboard`)
-        if (!response.ok) throw new Error('Failed to fetch analytics')
-        const data = await response.json()
+        const data = await api.analytics.getDashboard()
         setStats(data)
       } catch (err) {
-        setError(err.message)
+        console.error('Dashboard error:', err)
+        setError(err.message || 'Failed to load dashboard')
       } finally {
         setLoading(false)
       }

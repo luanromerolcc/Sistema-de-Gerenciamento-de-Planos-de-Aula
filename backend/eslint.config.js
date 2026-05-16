@@ -16,7 +16,7 @@ export default [
     },
     rules: {
       ...js.configs.recommended.rules,
-      'no-unused-vars': ['warn', { varsIgnorePattern: '^_', destructuredArrayIgnorePattern: '^_' }],
+      
       'no-empty': ['error', { allowEmptyCatch: true }],
       'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
       'no-console': ['warn', { allow: ['warn', 'error'] }],
