@@ -8,45 +8,36 @@ datasource db {
 }
 
 model LessonPlan {
-  id           String    @id @default(cuid())
-  title        String
-  objective    String
-  summary      String    @db.Text
-  scheduledAt  DateTime
-  discipline   String
-  contents     String    @db.Text
-  resources    String    @db.Text
-  tags         String[]
-  searchVector Unsupported("tsvector")?
+  id          String   @id @default(cuid())
+  title       String
+  objective   String
+  summary     String   @db.Text
+  scheduledAt DateTime
+  discipline  String
+  contents    String   @db.Text
+  resources   String   @db.Text
+  tags        String[]
+  searchVector Unsupported("tsvector")? // full-text search
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  versions  LessonPlanVersion[]
-  auditLogs AuditLog[]
-
-  @@map("lesson_plans")
+  versions    LessonPlanVersion[]
+  auditLogs   AuditLog[]
 }
 
 model LessonPlanVersion {
-  id           String   @id @default(cuid())
+  id           String     @id @default(cuid())
   lessonPlanId String
   snapshot     Json
-  createdAt    DateTime @default(now())
-
-  lessonPlan LessonPlan @relation(fields: [lessonPlanId], references: [id], onDelete: Cascade)
-
-  @@map("lesson_plan_versions")
+  createdAt    DateTime   @default(now())
+  lessonPlan   LessonPlan @relation(fields: [lessonPlanId], references: [id], onDelete: Cascade)
 }
 
 model AuditLog {
-  id           String   @id @default(cuid())
+  id           String      @id @default(cuid())
   lessonPlanId String?
-  action       String   // CREATE | UPDATE | DELETE | AI_ASSIST | RESTORE_VERSION | DUPLICATE | EXPORT
+  action       String      // CREATE | UPDATE | DELETE | AI_ASSIST | RESTORE_VERSION
   metadata     Json?
-  createdAt    DateTime @default(now())
-
-  lessonPlan LessonPlan? @relation(fields: [lessonPlanId], references: [id], onDelete: SetNull)
-
-  @@map("audit_logs")
+  createdAt    DateTime    @default(now())
+  lessonPlan   LessonPlan? @relation(fields: [lessonPlanId], references: [id], onDelete: SetNull)
 }
