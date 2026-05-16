@@ -1,4 +1,3 @@
-import { randomUUID } from 'crypto'
 
 function escapeIcal(str) {
   return String(str || '').replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n')
