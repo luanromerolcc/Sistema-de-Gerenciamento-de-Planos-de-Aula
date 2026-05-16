@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+coverage/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Prisma
+.prisma/
+
+# Docker
+.dockerignore
+
+# Testing
+.nyc_output/
+cypress/screenshots/
+cypress/videos/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Temp
+tmp/
+temp/
