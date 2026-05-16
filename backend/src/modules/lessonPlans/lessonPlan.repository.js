@@ -130,7 +130,7 @@ export async function restoreVersion(id, versionId) {
   const version = await findVersion(id, versionId)
   if (!version) return null
 
-  const { id: _id, createdAt: _ca, updatedAt: _ua, ...snapshot } = version.snapshot
+  const { ...snapshot } = version.snapshot
 
   // Save current as version before restoring
   const current = await findById(id)
@@ -148,7 +148,7 @@ export async function duplicate(id) {
   const plan = await findById(id)
   if (!plan) return null
 
-  const { id: _id, createdAt: _ca, updatedAt: _ua, searchVector: _sv, ...rest } = plan
+  const { id, createdAt, updatedAt, searchVector, ...rest } = plan
 
   return prisma.lessonPlan.create({
     data: {

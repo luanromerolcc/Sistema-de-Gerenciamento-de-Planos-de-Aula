@@ -1,11 +1,12 @@
-import Anthropic from '@anthropic-ai/sdk'
+import { GoogleGenerativeAI } from '@google/generative-ai'
 import { createHash } from 'crypto'
 import { getRedis } from '../../config/redis.js'
 import { env } from '../../config/env.js'
 import { logger } from '../../config/logger.js'
 import { prisma } from '../../config/prisma.js'
 
-const anthropic = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY })
+const genAI = new GoogleGenerativeAI(env.GOOGLE_API_KEY)
+const model = genAI.getGenerativeModel({ model: 'gemini-pro' })
 
 const SYSTEM_PROMPT = `Você é um Assistente Pedagógico especializado em planejamento de aulas.
 Responda APENAS em JSON válido, sem texto adicional, sem blocos de código markdown.`
@@ -32,7 +33,9 @@ function cacheKey({ title, discipline, summary }) {
 async function logAI(lessonPlanId, metadata) {
   try {
     await prisma.auditLog.create({ data: { action: 'AI_ASSIST', lessonPlanId, metadata } })
-  } catch {}
+  } catch {
+    // Audit log failure is non-critical
+  }
 }
 
 export async function getRecommendation({ title, discipline, summary, lessonPlanId }) {
@@ -46,20 +49,22 @@ export async function getRecommendation({ title, discipline, summary, lessonPlan
       logger.info({ title, discipline, cached: true }, 'AI Request (cache hit)')
       return { ...JSON.parse(cached), cached: true }
     }
-  } catch {}
+  } catch {
+    // Redis unavailable, continue without cache
+  }
 
   const start = Date.now()
-  const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 1000,
-    system: SYSTEM_PROMPT,
-    messages: [{ role: 'user', content: buildUserPrompt({ title, discipline, summary }) }],
+  const response = await model.generateContent({
+    contents: [{
+      role: 'user',
+      parts: [{ text: `${SYSTEM_PROMPT}\n\n${buildUserPrompt({ title, discipline, summary })}` }],
+    }],
   })
 
   const latency = `${((Date.now() - start) / 1000).toFixed(1)}s`
-  const tokenUsage = message.usage?.input_tokens + message.usage?.output_tokens
+  const tokenUsage = response.usageMetadata?.promptTokens + response.usageMetadata?.candidatesTokens
 
-  const raw = message.content[0]?.text ?? '{}'
+  const raw = response.candidates?.[0]?.content?.parts?.[0]?.text ?? '{}'
   const clean = raw.replace(/```json|```/g, '').trim()
 
   let result
@@ -75,7 +80,9 @@ export async function getRecommendation({ title, discipline, summary, lessonPlan
   // Store in cache
   try {
     await redis.set(key, JSON.stringify(result), 'EX', env.AI_CACHE_TTL_SECONDS)
-  } catch {}
+  } catch {
+    // Redis caching failed, result still returned
+  }
 
   return { ...result, cached: false }
 }
@@ -94,22 +101,24 @@ export async function streamRecommendation({ title, discipline, summary, lessonP
       onDone({ cached: true })
       return
     }
-  } catch {}
+  } catch {
+    // Redis unavailable, continue with live stream
+  }
 
   const start = Date.now()
-  const stream = await anthropic.messages.stream({
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 1000,
-    system: SYSTEM_PROMPT,
-    messages: [{ role: 'user', content: buildUserPrompt({ title, discipline, summary }) }],
+  const stream = await model.generateContentStream({
+    contents: [{
+      role: 'user',
+      parts: [{ text: `${SYSTEM_PROMPT}\n\n${buildUserPrompt({ title, discipline, summary })}` }],
+    }],
   })
 
   let fullText = ''
-  for await (const chunk of stream) {
-    if (chunk.type === 'content_block_delta' && chunk.delta?.type === 'text_delta') {
-      const token = chunk.delta.text
-      fullText += token
-      onToken(token)
+  for await (const chunk of stream.stream) {
+    const chunkText = chunk.candidates?.[0]?.content?.parts?.[0]?.text
+    if (chunkText) {
+      fullText += chunkText
+      onToken(chunkText)
     }
   }
 
@@ -122,7 +131,9 @@ export async function streamRecommendation({ title, discipline, summary, lessonP
     const clean = fullText.replace(/```json|```/g, '').trim()
     const parsed = JSON.parse(clean)
     await redis.set(key, JSON.stringify(parsed), 'EX', env.AI_CACHE_TTL_SECONDS)
-  } catch {}
+  } catch {
+    // Cache write failed, response already streamed
+  }
 
   onDone({ cached: false })
 }
