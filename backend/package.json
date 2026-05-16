@@ -43,7 +43,6 @@
   },
   "jest": {
     "testEnvironment": "node",
-    "extensionsToTreatAsEsm": [".js"],
     "transform": {},
     "testMatch": ["**/tests/**/*.test.js"],
     "coverageDirectory": "coverage",
