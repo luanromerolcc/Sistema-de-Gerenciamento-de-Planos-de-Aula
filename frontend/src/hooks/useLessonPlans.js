@@ -1,36 +1,27 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import axios from 'axios'
+import { api } from '../services/api'
 
-const API_BASE = '/api'
-
-export function useLessonPlans(query) {
+export function useLessonPlans(params = {}) {
   return useQuery({
-    queryKey: ['lesson-plans', query],
-    queryFn: async () => {
-      const { data } = await axios.get(`${API_BASE}/lesson-plans`, { params: query })
-      return data
-    },
+    queryKey: ['lesson-plans', params],
+    queryFn: () => api.lessonPlans.getAll(params),
+    staleTime: 1000 * 60 * 5,
   })
 }
 
 export function useLessonPlan(id) {
   return useQuery({
     queryKey: ['lesson-plan', id],
-    queryFn: async () => {
-      const { data } = await axios.get(`${API_BASE}/lesson-plans/${id}`)
-      return data
-    },
+    queryFn: () => api.lessonPlans.getById(id),
     enabled: !!id,
+    staleTime: 1000 * 60 * 5,
   })
 }
 
 export function useCreateLessonPlan() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (data) => {
-      const response = await axios.post(`${API_BASE}/lesson-plans`, data)
-      return response.data
-    },
+    mutationFn: (data) => api.lessonPlans.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['lesson-plans'] })
     },
@@ -40,10 +31,7 @@ export function useCreateLessonPlan() {
 export function useUpdateLessonPlan() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async ({ id, data }) => {
-      const response = await axios.put(`${API_BASE}/lesson-plans/${id}`, data)
-      return response.data
-    },
+    mutationFn: ({ id, data }) => api.lessonPlans.update(id, data),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['lesson-plans'] })
       queryClient.setQueryData(['lesson-plan', data.id], data)
@@ -54,35 +42,8 @@ export function useUpdateLessonPlan() {
 export function useDeleteLessonPlan() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (id) => {
-      await axios.delete(`${API_BASE}/lesson-plans/${id}`)
-    },
+    mutationFn: (id) => api.lessonPlans.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['lesson-plans'] })
-    },
-  })
-}
-
-export function useLessonPlanVersions(id) {
-  return useQuery({
-    queryKey: ['lesson-plan-versions', id],
-    queryFn: async () => {
-      const { data } = await axios.get(`${API_BASE}/lesson-plans/${id}/versions`)
-      return data
-    },
-    enabled: !!id,
-  })
-}
-
-export function useRestoreVersion() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: async ({ id, vid }) => {
-      const response = await axios.post(`${API_BASE}/lesson-plans/${id}/restore/${vid}`)
-      return response.data
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['lesson-plan', data.id] })
       queryClient.invalidateQueries({ queryKey: ['lesson-plans'] })
     },
   })
@@ -91,10 +52,7 @@ export function useRestoreVersion() {
 export function useDuplicateLessonPlan() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (id) => {
-      const response = await axios.post(`${API_BASE}/lesson-plans/${id}/duplicate`)
-      return response.data
-    },
+    mutationFn: (id) => api.lessonPlans.duplicate(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['lesson-plans'] })
     },
