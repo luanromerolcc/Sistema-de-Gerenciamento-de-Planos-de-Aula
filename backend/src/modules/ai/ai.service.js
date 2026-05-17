@@ -33,8 +33,9 @@ function cacheKey({ title, discipline, summary }) {
 async function logAI(lessonPlanId, metadata) {
   try {
     await prisma.auditLog.create({ data: { action: 'AI_ASSIST', lessonPlanId, metadata } })
-  } catch {
+  } catch (error) {
     // Audit log failure is non-critical
+    logger.debug({ error }, 'Audit log write failed')
   }
 }
 
@@ -49,8 +50,9 @@ export async function getRecommendation({ title, discipline, summary, lessonPlan
       logger.info({ title, discipline, cached: true }, 'AI Request (cache hit)')
       return { ...JSON.parse(cached), cached: true }
     }
-  } catch {
+  } catch (error) {
     // Redis unavailable, continue without cache
+    logger.debug({ error }, 'Redis cache read failed')
   }
 
   const start = Date.now()
@@ -70,7 +72,8 @@ export async function getRecommendation({ title, discipline, summary, lessonPlan
   let result
   try {
     result = JSON.parse(clean)
-  } catch {
+  } catch (error) {
+    logger.error({ error }, 'Failed to parse AI response')
     throw { statusCode: 502, message: 'IA retornou resposta inválida' }
   }
 
@@ -80,8 +83,9 @@ export async function getRecommendation({ title, discipline, summary, lessonPlan
   // Store in cache
   try {
     await redis.set(key, JSON.stringify(result), 'EX', env.AI_CACHE_TTL_SECONDS)
-  } catch {
+  } catch (error) {
     // Redis caching failed, result still returned
+    logger.debug({ error }, 'Redis cache write failed')
   }
 
   return { ...result, cached: false }
@@ -101,8 +105,9 @@ export async function streamRecommendation({ title, discipline, summary, lessonP
       onDone({ cached: true })
       return
     }
-  } catch {
+  } catch (error) {
     // Redis unavailable, continue with live stream
+    logger.debug({ error }, 'Redis cache read failed')
   }
 
   const start = Date.now()

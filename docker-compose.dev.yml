@@ -1,18 +1,21 @@
-version: '3.9'
-
 services:
   postgres:
     image: postgres:15-alpine
     container_name: postgres-dev
     restart: always
     environment:
-      POSTGRES_USER: lessonuser
-      POSTGRES_PASSWORD: lessonpass
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
       POSTGRES_DB: lessonplans
     ports:
       - '5432:5432'
     volumes:
       - postgres_data_dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d lessonplans"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7-alpine
@@ -34,8 +37,10 @@ services:
       - ./backend/src:/app/src
     command: npm run dev
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
 
   frontend:
     build:

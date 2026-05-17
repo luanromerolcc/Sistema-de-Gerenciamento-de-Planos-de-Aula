@@ -3,34 +3,42 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Install dependencies
+# Install dependencies (including devDependencies for prisma CLI)
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm ci
+
+# Copy schema for Prisma generation
+COPY prisma ./prisma
+
+# Generate Prisma Client in builder stage
+RUN npx prisma generate
 
 # Stage 2: Runtime
 FROM node:20-alpine
 
 WORKDIR /app
 
-# Install Puppeteer dependencies
+# Install system dependencies for Prisma, Puppeteer, and OpenSSL
 RUN apk add --no-cache \
+    openssl \
     chromium \
     font-noto \
     freetype \
     harfbuzz \
-    ca-certificates
+    ca-certificates \
+    dumb-init
 
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
-# Copy built dependencies from builder
+# Copy entire node_modules from builder (includes Prisma engines + all deps)
 COPY --from=builder /app/node_modules ./node_modules
 
 # Copy application files
 COPY . .
 
-# Generate Prisma Client
-RUN npx prisma generate
+# Remove devDependencies from runtime (optional, to reduce size)
+RUN npm prune --omit=dev
 
 EXPOSE 3000
 
