@@ -3,18 +3,24 @@ export const aiSchema = {
     body: {
       type: 'object',
       properties: {
-        prompt: { type: 'string', minLength: 10 },
+        title: { type: 'string', minLength: 3 },
+        discipline: { type: 'string', minLength: 2 },
+        summary: { type: 'string', minLength: 10 },
+        lessonPlanId: { type: 'string' },
       },
-      required: ['prompt'],
+      required: ['title', 'discipline', 'summary'],
     },
   },
   recommendStream: {
     querystring: {
       type: 'object',
       properties: {
-        prompt: { type: 'string', minLength: 10 },
+        title: { type: 'string', minLength: 3 },
+        discipline: { type: 'string', minLength: 2 },
+        summary: { type: 'string', minLength: 10 },
+        lessonPlanId: { type: 'string' },
       },
-      required: ['prompt'],
+      required: ['title', 'discipline', 'summary'],
     },
   },
 };

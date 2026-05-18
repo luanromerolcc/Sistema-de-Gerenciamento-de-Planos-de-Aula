@@ -2,9 +2,9 @@ import { z } from 'zod'
 
 export const createLessonPlanSchema = z.object({
   title: z.string().min(3).max(200),
-  objective: z.string().min(10).max(500),
+  objective: z.string().max(500).optional().or(z.literal('')),
   summary: z.string().min(10),
-  scheduledAt: z.string().datetime(),
+  scheduledAt: z.string().datetime().optional().nullable(),
   discipline: z.string().min(2).max(100),
   contents: z.string().min(10),
   resources: z.string().default(''),
@@ -56,12 +56,12 @@ export const lessonPlanSchema = {
   create: {
     body: {
       type: 'object',
-      required: ['title', 'objective', 'summary', 'scheduledAt', 'discipline', 'contents'],
+      required: ['title', 'summary', 'discipline', 'contents'],
       properties: {
         title: { type: 'string' },
         objective: { type: 'string' },
         summary: { type: 'string' },
-        scheduledAt: { type: 'string' },
+        scheduledAt: { type: ['string', 'null'] },
         discipline: { type: 'string' },
         contents: { type: 'string' },
         resources: { type: 'string' },

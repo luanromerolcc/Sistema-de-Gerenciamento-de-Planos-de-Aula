@@ -83,7 +83,7 @@ export async function create(data) {
   return prisma.lessonPlan.create({
     data: {
       ...data,
-      scheduledAt: new Date(data.scheduledAt),
+      scheduledAt: data.scheduledAt ? new Date(data.scheduledAt) : null,
     },
   })
 }
