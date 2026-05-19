@@ -35,7 +35,7 @@ services:
       - ./backend/.env
     volumes:
       - ./backend/src:/app/src
-    command: npm run dev
+      - ./backend/prisma:/app/prisma
     depends_on:
       postgres:
         condition: service_healthy

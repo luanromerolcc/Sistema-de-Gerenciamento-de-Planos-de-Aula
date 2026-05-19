@@ -11,6 +11,7 @@ const TEXTAREA_BASE = 'w-full px-3.5 py-2.5 border rounded-lg bg-white dark:bg-s
 const TEXTAREA_NORMAL = 'border-slate-300 dark:border-slate-500 focus:ring-indigo-500 dark:focus:ring-indigo-400'
 const TEXTAREA_ERROR = 'border-red-400 dark:border-red-500 focus:ring-red-400 dark:focus:ring-red-500'
 
+
 function FieldError({ error }) {
   if (!error) return null
   return <p className="text-xs text-red-500 dark:text-red-400 mt-1">{error}</p>

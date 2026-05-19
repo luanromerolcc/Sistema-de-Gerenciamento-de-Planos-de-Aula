@@ -11,24 +11,24 @@ import { api } from '../services/api'
 
 const ACCENT_COLORS = {
   total: { 
-    bg: 'from-indigo-500 to-indigo-600', 
-    light: 'from-indigo-50 to-indigo-100', 
-    icon: 'text-indigo-600' 
+    bg: 'from-pink-500 to-pink-600', 
+    light: 'from-pink-50 to-pink-100', 
+    icon: 'text-pink-600' 
   },
   month: { 
-    bg: 'from-emerald-500 to-emerald-600', 
-    light: 'from-emerald-50 to-emerald-100', 
-    icon: 'text-emerald-600' 
+    bg: 'from-rose-500 to-rose-600', 
+    light: 'from-rose-50 to-rose-100', 
+    icon: 'text-rose-600' 
   },
   scheduled: { 
-    bg: 'from-amber-500 to-amber-600', 
-    light: 'from-amber-50 to-amber-100', 
-    icon: 'text-amber-600' 
-  },
-  ai: { 
     bg: 'from-purple-500 to-purple-600', 
     light: 'from-purple-50 to-purple-100', 
     icon: 'text-purple-600' 
+  },
+  ai: { 
+    bg: 'from-violet-500 to-violet-600', 
+    light: 'from-violet-50 to-violet-100', 
+    icon: 'text-violet-600' 
   },
 }
 
@@ -163,7 +163,6 @@ export default function Dashboard() {
             title="Start creating lesson plans"
             description="Create your first lesson plan and keep your classes organized."
             primaryAction={{ label: 'Create with AI', onClick: () => navigate('/create?ai=1') }}
-            secondaryAction={{ label: 'Create manually', onClick: () => navigate('/create') }}
           />
         </div>
       )}
