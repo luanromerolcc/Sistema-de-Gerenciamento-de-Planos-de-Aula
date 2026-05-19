@@ -1,14 +1,26 @@
-import { z } from 'zod';
-
 export const aiSchema = {
   recommend: {
-    body: z.object({
-      prompt: z.string().min(10),
-    }),
+    body: {
+      type: 'object',
+      properties: {
+        title: { type: 'string', minLength: 3 },
+        discipline: { type: 'string', minLength: 2 },
+        summary: { type: 'string', minLength: 10 },
+        lessonPlanId: { type: 'string' },
+      },
+      required: ['title', 'discipline', 'summary'],
+    },
   },
   recommendStream: {
-    querystring: z.object({
-      prompt: z.string().min(10),
-    }),
+    querystring: {
+      type: 'object',
+      properties: {
+        title: { type: 'string', minLength: 3 },
+        discipline: { type: 'string', minLength: 2 },
+        summary: { type: 'string', minLength: 10 },
+        lessonPlanId: { type: 'string' },
+      },
+      required: ['title', 'discipline', 'summary'],
+    },
   },
 };

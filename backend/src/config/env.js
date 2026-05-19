@@ -3,7 +3,8 @@ import { z } from 'zod'
 const envSchema = z.object({
   DATABASE_URL: z.string().url(),
   REDIS_URL: z.string().url(),
-  ANTHROPIC_API_KEY: z.string().min(10),
+  GROQ_API_KEY: z.string().min(10),
+  GROQ_MODEL: z.string().default('llama-3.3-70b-versatile'),
   PORT: z.coerce.number().default(3000),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   AI_CACHE_TTL_SECONDS: z.coerce.number().default(86400),

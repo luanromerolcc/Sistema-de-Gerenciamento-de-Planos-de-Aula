@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 export const createLessonPlanSchema = z.object({
   title: z.string().min(3).max(200),
-  objective: z.string().min(10).max(500),
+  objective: z.string().max(500).optional().or(z.literal('')),
   summary: z.string().min(10),
   scheduledAt: z.string().datetime(),
   discipline: z.string().min(2).max(100),
@@ -38,5 +38,66 @@ export const idParamSchema = z.object({
 
 export const restoreParamSchema = z.object({
   id: z.string().cuid(),
-  vid: z.string().cuid(),
+  versionId: z.string().cuid(),
 })
+
+export const lessonPlanSchema = {
+  list: {
+    querystring: {
+      type: 'object',
+      properties: {
+        discipline: { type: 'string' },
+        search: { type: 'string' },
+        page: { type: 'integer' },
+        pageSize: { type: 'integer' },
+      },
+    },
+  },
+  create: {
+    body: {
+      type: 'object',
+      required: ['title', 'summary', 'discipline', 'contents', 'scheduledAt'],
+      properties: {
+        title: { type: 'string' },
+        objective: { type: 'string' },
+        summary: { type: 'string' },
+        scheduledAt: { type: 'string', format: 'date-time' },
+        discipline: { type: 'string' },
+        contents: { type: 'string' },
+        resources: { type: 'string' },
+        tags: { type: 'array', items: { type: 'string' } },
+      },
+    },
+  },
+  get: {
+    params: {
+      type: 'object',
+      properties: { id: { type: 'string' } },
+    },
+  },
+  update: {
+    params: {
+      type: 'object',
+      properties: { id: { type: 'string' } },
+    },
+    body: {
+      type: 'object',
+      properties: {
+        title: { type: 'string' },
+        objective: { type: 'string' },
+        summary: { type: 'string' },
+        scheduledAt: { type: 'string' },
+        discipline: { type: 'string' },
+        contents: { type: 'string' },
+        resources: { type: 'string' },
+        tags: { type: 'array', items: { type: 'string' } },
+      },
+    },
+  },
+  delete: {
+    params: {
+      type: 'object',
+      properties: { id: { type: 'string' } },
+    },
+  },
+}

@@ -1,0 +1,57 @@
+{
+  "name": "Lesson Plan Manager",
+  "dockerComposeFile": "../docker-compose.dev.yml",
+  "service": "backend",
+  "workspaceFolder": "/workspace",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.vscode-typescript-next",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "prisma.prisma",
+        "golang.go",
+        "ms-azuretools.vscode-docker",
+        "eamodio.gitlens",
+        "github.copilot"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "[javascript]": {
+          "editor.formatOnSave": true
+        },
+        "[json]": {
+          "editor.formatOnSave": true
+        },
+        "files.exclude": {
+          "**/node_modules": true,
+          "**/.git": true
+        }
+      }
+    }
+  },
+  "forwardPorts": [3000, 5173, 5432, 6379, 5555],
+  "portsAttributes": {
+    "3000": {
+      "label": "Backend API",
+      "onAutoForward": "notify"
+    },
+    "5173": {
+      "label": "Frontend",
+      "onAutoForward": "notify"
+    },
+    "5432": {
+      "label": "PostgreSQL",
+      "onAutoForward": "silent"
+    },
+    "6379": {
+      "label": "Redis",
+      "onAutoForward": "silent"
+    },
+    "5555": {
+      "label": "Prisma Studio",
+      "onAutoForward": "notify"
+    }
+  }
+}

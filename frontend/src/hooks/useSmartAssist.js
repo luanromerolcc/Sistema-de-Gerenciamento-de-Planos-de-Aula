@@ -1,42 +1,64 @@
 import { useState, useCallback } from 'react'
-import axios from 'axios'
-
-const API_BASE = '/api'
+import { api } from '../services/api'
 
 export function useSmartAssist() {
-  const [content, setContent] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
   const [isCached, setIsCached] = useState(false)
 
-  const stream = useCallback(async (params) => {
-    setLoading(true)
+  const stream = useCallback(async (data, onDone) => {
+    setIsLoading(true)
     setError(null)
-    setContent('')
     setIsCached(false)
 
     try {
-      const response = await axios.get(`${API_BASE}/ai/recommend/stream`, {
-        params,
-        responseType: 'stream',
-        onDownloadProgress: (progressEvent) => {
-          const chunk = progressEvent.event.currentTarget.response
-          if (chunk) {
-            setContent((prev) => prev + chunk)
-          }
-        },
+      const qs = new URLSearchParams(data).toString()
+      const eventSource = new EventSource(`${api.ai.streamUrl()}?${qs}`)
+
+      eventSource.addEventListener('done', (event) => {
+        const result = JSON.parse(event.data)
+        setIsCached(result.cached || false)
+        eventSource.close()
+        setIsLoading(false)
+        onDone?.(result)
       })
 
-      // Check for cache header
-      if (response.headers['x-cached'] === 'true') {
-        setIsCached(true)
-      }
+      eventSource.addEventListener('error', (event) => {
+        const err = new Error(event.data || 'Streaming error')
+        setError(err)
+        setIsLoading(false)
+        eventSource.close()
+        onDone?.(null)
+      })
+
+      return eventSource
     } catch (err) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
+      setError(err)
+      setIsLoading(false)
     }
   }, [])
 
-  return { content, loading, error, isCached, stream }
+  const getRecommendation = useCallback(async (data) => {
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const result = await api.ai.getRecommendation(data)
+      setIsCached(result.cached || false)
+      setIsLoading(false)
+      return result
+    } catch (err) {
+      setError(err)
+      setIsLoading(false)
+      throw err
+    }
+  }, [])
+
+  return {
+    stream,
+    getRecommendation,
+    isLoading,
+    error,
+    isCached,
+  }
 }

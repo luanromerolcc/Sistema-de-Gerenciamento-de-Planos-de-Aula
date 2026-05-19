@@ -1,4 +1,5 @@
 import { prisma } from '../../config/prisma.js'
+import { Prisma } from '@prisma/client'
 
 export async function findAll({
   discipline,
@@ -35,18 +36,22 @@ export async function findAll({
 
   // Use raw for full-text; otherwise use standard Prisma query
   if (search && searchFilter) {
+    const disciplineClause = discipline
+      ? Prisma.sql`AND discipline ILIKE ${'%' + discipline + '%'}`
+      : Prisma.empty
+
     const [plans, countResult] = await Promise.all([
       prisma.$queryRaw`
         SELECT id, title, objective, summary, "scheduledAt", discipline, contents, resources, tags, "createdAt", "updatedAt"
-        FROM lesson_plans
-        WHERE search_vector @@ to_tsquery('portuguese', ${searchFilter})
-        ${discipline ? prisma.$queryRaw`AND discipline ILIKE ${'%' + discipline + '%'}` : prisma.$queryRaw``}
-        ORDER BY ts_rank(search_vector, to_tsquery('portuguese', ${searchFilter})) DESC
+        FROM "LessonPlan"
+        WHERE "searchVector" @@ to_tsquery('portuguese', ${searchFilter})
+        ${disciplineClause}
+        ORDER BY ts_rank("searchVector", to_tsquery('portuguese', ${searchFilter})) DESC
         LIMIT ${pageSize} OFFSET ${skip}
       `,
       prisma.$queryRaw`
-        SELECT COUNT(*)::int as count FROM lesson_plans
-        WHERE search_vector @@ to_tsquery('portuguese', ${searchFilter})
+        SELECT COUNT(*)::int as count FROM "LessonPlan"
+        WHERE "searchVector" @@ to_tsquery('portuguese', ${searchFilter})
       `,
     ])
     return { plans, total: countResult[0]?.count ?? 0, page, pageSize }
@@ -130,9 +135,9 @@ export async function restoreVersion(id, versionId) {
   const version = await findVersion(id, versionId)
   if (!version) return null
 
+  // eslint-disable-next-line no-unused-vars
   const { id: _id, createdAt: _ca, updatedAt: _ua, ...snapshot } = version.snapshot
 
-  // Save current as version before restoring
   const current = await findById(id)
   await prisma.lessonPlanVersion.create({
     data: { lessonPlanId: id, snapshot: current },
@@ -143,12 +148,12 @@ export async function restoreVersion(id, versionId) {
     data: snapshot,
   })
 }
-
 export async function duplicate(id) {
   const plan = await findById(id)
   if (!plan) return null
 
-  const { id: _id, createdAt: _ca, updatedAt: _ua, searchVector: _sv, ...rest } = plan
+  // eslint-disable-next-line no-unused-vars
+  const { id: _id, createdAt: _ca, updatedAt: _ua, ...rest } = plan
 
   return prisma.lessonPlan.create({
     data: {

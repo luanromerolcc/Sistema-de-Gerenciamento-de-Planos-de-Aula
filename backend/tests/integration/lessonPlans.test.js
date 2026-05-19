@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals'
 import request from 'supertest'
 import { buildApp } from '../../src/app.js'
-import { prisma } from '../src/config/prisma.js'
+import { prisma } from '../../src/config/prisma.js'
 
 describe('Lesson Plans CRUD', () => {
   let app
@@ -40,7 +40,7 @@ describe('Lesson Plans CRUD', () => {
     const response = await request(app.server).get('/api/lesson-plans')
 
     expect(response.status).toBe(200)
-    expect(Array.isArray(response.body.data)).toBe(true)
+    expect(Array.isArray(response.body.plans)).toBe(true)
   })
 
   it('should retrieve a single lesson plan', async () => {

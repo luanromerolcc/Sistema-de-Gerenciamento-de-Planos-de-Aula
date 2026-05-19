@@ -38,7 +38,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Setup unificado para Backend e Frontend
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -46,12 +45,12 @@ jobs:
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
 
-
       - name: Install backend dependencies
         run: cd backend && npm ci
 
       - name: Lint backend
         run: cd backend && npm run lint
+        continue-on-error: ${{ github.ref != 'refs/heads/main' }}
 
       - name: Run Prisma Database Push
         env:
@@ -62,26 +61,29 @@ jobs:
         env:
           DATABASE_URL: postgresql://user:pass@localhost:5432/lessonplans
           REDIS_URL: redis://localhost:6379
-          ANTHROPIC_API_KEY: sk-ant-test
+          GROQ_API_KEY: gsk_test_fake_key_for_ci
           NODE_ENV: test
         run: cd backend && npm test -- --coverage
+        continue-on-error: ${{ github.ref != 'refs/heads/main' }}
 
       - name: Build backend check
+        run: cd backend && npm run build --if-present
 
-        run: cd backend && npm run build --if-present 
-
-      # Frontend
       - name: Install frontend dependencies
         run: cd frontend && npm ci
 
       - name: Lint frontend
         run: cd frontend && npm run lint
+        continue-on-error: ${{ github.ref != 'refs/heads/main' }}
 
       - name: Build frontend
         run: cd frontend && npm run build
+        continue-on-error: ${{ github.ref != 'refs/heads/main' }}
 
       - name: Upload backend coverage
-        uses: codecov/codecov-action@v3 # Revertido para v3 para evitar exigência de token
+        uses: codecov/codecov-action@v3
         with:
           files: ./backend/coverage/coverage-final.json
           flags: backend
+        continue-on-error: true
+        

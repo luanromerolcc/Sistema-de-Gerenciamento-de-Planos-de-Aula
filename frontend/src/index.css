@@ -1,6 +1,92 @@
+@import '@fontsource/geist/400.css';
+@import '@fontsource/geist/500.css';
+@import '@fontsource/geist/600.css';
+@import '@fontsource/geist/700.css';
+@import '@fontsource/geist-mono/400.css';
+@import '@fontsource/geist-mono/500.css';
+
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
+
+@layer base {
+  :root {
+    --radius: 0.5rem;
+    
+    /* Light mode */
+    --background: 0 0% 100%;
+    --foreground: 224 71.4% 4.1%;
+    
+    --card: 0 0% 100%;
+    --card-foreground: 224 71.4% 4.1%;
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 71.4% 4.1%;
+    
+    --primary: 239 84% 67%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 220 14.3% 95.9%;
+    --secondary-foreground: 220.9 39.3% 11%;
+
+    --muted: 220 14.3% 95.9%;
+    --muted-foreground: 220.9 8.9% 46.1%;
+
+    --accent: 262 80% 50%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 239 84% 67%;
+  }
+
+  .dark {
+    --background: 224 71.4% 4.1%;
+    --foreground: 213 31.3% 74.8%;
+    
+    --card: 224 71.4% 4.1%;
+    --card-foreground: 213 31.3% 74.8%;
+    
+    --popover: 224 71.4% 4.1%;
+    --popover-foreground: 213 31.3% 74.8%;
+    
+    --background: 222 84% 4.9%;
+    --foreground: 213 31.3% 74.8%;
+
+    --card: 222 84% 4.9%;
+    --card-foreground: 213 31.3% 74.8%;
+
+    --popover: 222 84% 4.9%;
+    --popover-foreground: 213 31.3% 74.8%;
+
+    --primary: 239 84% 67%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 213 31.3% 74.8%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 16.3% 46.9%;
+
+    --accent: 262 80% 50%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 239 84% 67%;
+  }
+}
+
+body {
+  @apply bg-background text-foreground;
+  font-feature-settings: "rounding" 1;
+}
 
 * {
   @apply transition-colors;
@@ -31,10 +117,10 @@
 
 /* Focus */
 :focus-visible {
-  @apply outline-none ring-2 ring-primary ring-offset-2 dark:ring-offset-slate-950;
+  @apply outline-none ring-2 ring-primary ring-offset-2 dark:ring-offset-background;
 }
 
-/* Animations */
+/* ===== ENHANCED ANIMATIONS ===== */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -47,7 +133,7 @@
 @keyframes slideInUp {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(12px);
   }
   to {
     opacity: 1;
@@ -55,7 +141,79 @@
   }
 }
 
-@keyframes skeleton {
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulse-soft {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+/* Skeleton loading animation - improved */
+@keyframes skeleton-loading {
   0% {
     background-position: -1000px 0;
   }
@@ -69,9 +227,35 @@
 }
 
 .animate-slideInUp {
-  animation: slideInUp 0.3s ease-out;
+  animation: slideInUp 0.4s ease-out forwards;
+  opacity: 0;
 }
 
+.animate-slideInDown {
+  animation: slideInDown 0.4s ease-out;
+}
+
+.animate-slideInLeft {
+  animation: slideInLeft 0.3s ease-out;
+}
+
+.animate-slideInRight {
+  animation: slideInRight 0.3s ease-out;
+}
+
+.animate-scaleIn {
+  animation: scaleIn 0.3s ease-out;
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Skeleton loader - improved styling */
 .skeleton {
   background-image: linear-gradient(
     90deg,
@@ -81,7 +265,7 @@
     rgba(255, 255, 255, 0)
   );
   background-size: 1000px 100%;
-  animation: skeleton 2s infinite;
+  animation: skeleton-loading 2s infinite;
 }
 
 .dark .skeleton {
@@ -89,7 +273,125 @@
     90deg,
     rgba(255, 255, 255, 0) 0,
     rgba(255, 255, 255, 0.1) 20%,
-    rgba(255, 255, 255, 0.2) 60%,
+    rgba(255, 255, 255, 0.15) 60%,
     rgba(255, 255, 255, 0)
   );
+}
+
+/* ===== CUSTOM COMPONENTS ===== */
+
+/* Card enhancements */
+@layer components {
+  .card-elevated {
+    @apply bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all duration-200;
+  }
+
+  .card-gradient {
+    @apply bg-gradient-to-br from-slate-50 to-slate-100/50 dark:from-slate-900 dark:to-slate-900/50;
+  }
+
+  /* Badge enhancements */
+  .badge-pulse {
+    @apply animate-pulse-soft;
+  }
+
+  /* Button enhancements */
+  .btn-primary-glow {
+    @apply relative overflow-hidden;
+  }
+
+  .btn-primary-glow::before {
+    @apply absolute inset-0 bg-white/0 transition-all duration-300;
+    content: '';
+  }
+
+  .btn-primary-glow:hover::before {
+    @apply bg-white/20;
+  }
+
+  /* Input focus enhancements */
+  .input-focus-ring {
+    @apply focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:ring-offset-2 dark:focus:ring-offset-slate-950;
+  }
+
+  /* Page transition */
+  .page-transition {
+    @apply animate-slideInUp;
+  }
+}
+
+/* ===== UTILITY CLASSES FOR DASHBOARD ===== */
+
+.stat-card-enter {
+  animation: slideInUp 0.5s ease-out;
+}
+
+.dashboard-header {
+  @apply flex items-center justify-between mb-8;
+}
+
+.dashboard-header h1 {
+  @apply text-3xl font-bold text-slate-950 dark:text-slate-50;
+}
+
+/* Activity indicator pulse */
+.activity-dot {
+  @apply w-2 h-2 bg-indigo-600 dark:bg-indigo-400 rounded-full animate-pulse;
+}
+
+/* Hover effects for interactive elements */
+.hover-lift {
+  @apply transition-all duration-200 hover:translate-y-[-2px] hover:shadow-lg;
+}
+
+.hover-glow {
+  @apply transition-all duration-200 hover:shadow-lg hover:shadow-indigo-500/20 dark:hover:shadow-indigo-400/20;
+}
+
+/* ===== RESPONSIVE UTILITIES ===== */
+
+@media (max-width: 768px) {
+  .text-responsive-lg {
+    @apply text-2xl;
+  }
+
+  .grid-responsive {
+    @apply grid-cols-1;
+  }
+}
+
+@media (min-width: 769px) {
+  .text-responsive-lg {
+    @apply text-3xl;
+  }
+
+  .grid-responsive {
+    @apply grid-cols-2;
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid-responsive {
+    @apply grid-cols-4;
+  }
+}
+
+/* ===== ACCESSIBILITY ===== */
+
+/* Reduced motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: more) {
+  .border {
+    @apply border-slate-400 dark:border-slate-600;
+  }
 }
