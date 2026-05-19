@@ -19,10 +19,11 @@ export async function buildApp() {
   })
 
   // Plugins
+  const allowedOrigins = env.ALLOWED_ORIGINS
+    ? env.ALLOWED_ORIGINS.split(',').map((o) => o.trim())
+    : true // open for dev/evaluation; set ALLOWED_ORIGINS in production
   await fastify.register(cors, {
-    // origin: true aceita qualquer origem — adequado para dev/avaliação.
-    // Em produção, substituir por: origin: ['https://app.exemplo.com']
-    origin: true,
+    origin: allowedOrigins,
     credentials: true,
   })
 

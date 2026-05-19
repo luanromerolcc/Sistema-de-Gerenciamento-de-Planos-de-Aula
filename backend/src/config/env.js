@@ -10,6 +10,7 @@ const envSchema = z.object({
   AI_CACHE_TTL_SECONDS: z.coerce.number().default(86400),
   RATE_LIMIT_MAX: z.coerce.number().default(10),
   RATE_LIMIT_WINDOW_MS: z.coerce.number().default(60000),
+  ALLOWED_ORIGINS: z.string().optional(), // comma-separated, e.g. "https://app.com,https://admin.app.com"
 })
 
 function validateEnv() {
