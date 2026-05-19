@@ -11,6 +11,7 @@ export function useTheme() {
 
   useEffect(() => {
     localStorage.setItem('theme', isDark ? 'dark' : 'light')
+    document.documentElement.classList.toggle('dark', isDark)
   }, [isDark])
 
   const toggleTheme = () => setIsDark((prev) => !prev)

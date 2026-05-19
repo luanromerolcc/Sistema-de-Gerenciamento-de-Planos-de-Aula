@@ -10,32 +10,31 @@ export default function SmartAssistPanel({ title, discipline, summary, onApply }
   const handleGetSuggestions = () => {
     setApplied(false)
     stream({ title, discipline, summary }, (result) => {
-      if (!result || !onApply) {
-        if (error) console.error('Smart Assist error:', error)
-        return
-      }
-      // Silently apply the parsed result (contents, resources, tags)
+      if (!result || !onApply) return
       onApply(result)
       setApplied(true)
-      // Show success message for 3 seconds
       setTimeout(() => setApplied(false), 3000)
     })
   }
 
   return (
-    <div className="space-y-3">
+    <div data-testid="smart-assist-panel" className="space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           {isCached && (
-            <span className="inline-flex items-center gap-1 bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 px-2 py-0.5 rounded-full" style={{ fontSize: 11 }}>
+            <span
+              data-testid="cached-badge"
+              className="inline-flex items-center gap-1 bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 px-2 py-0.5 rounded-full"
+              style={{ fontSize: 11 }}
+            >
               <Database size={12} />
-              cached
+              Resposta em cache
             </span>
           )}
           {applied && !isLoading && (
             <span className="inline-flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
               <Check size={14} />
-              Fields updated
+              Campos preenchidos
             </span>
           )}
         </div>
@@ -47,7 +46,7 @@ export default function SmartAssistPanel({ title, discipline, summary, onApply }
           disabled={isLoading || !title || !discipline}
         >
           <Sparkles size={14} className="mr-1" />
-          {isLoading ? 'Generating...' : 'Get Suggestions'}
+          {isLoading ? 'Gerando...' : 'Gerar Recomendações'}
         </Button>
       </div>
 
@@ -57,7 +56,7 @@ export default function SmartAssistPanel({ title, discipline, summary, onApply }
             <Sparkles size={16} className="text-indigo-500" />
           </div>
           <span className="text-sm text-slate-600 dark:text-slate-400">
-            Analyzing lesson content...
+            Analisando conteúdo da aula...
           </span>
         </div>
       )}

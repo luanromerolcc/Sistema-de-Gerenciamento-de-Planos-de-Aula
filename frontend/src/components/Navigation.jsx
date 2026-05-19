@@ -8,8 +8,8 @@ export default function Navigation() {
   const { isDark, toggleTheme } = useTheme()
 
   const navItems = [
-    { label: 'Dashboard', path: '/', icon: <LayoutDashboard size={15} /> },
-    { label: 'Lesson Plans', path: '/plans', icon: <BookText size={15} /> },
+    { label: 'Painel', path: '/', icon: <LayoutDashboard size={15} /> },
+    { label: 'Planos de Aula', path: '/plans', icon: <BookText size={15} /> },
   ]
 
   return (
@@ -18,13 +18,13 @@ export default function Navigation() {
         <div className="flex items-center gap-2.5">
           <BookOpen size={20} className="text-indigo-600 flex-shrink-0" />
           <span className="text-base font-semibold text-slate-900 dark:text-slate-50 tracking-tight">
-            Lesson Plan Manager
+            Gestor de Planos de Aula
           </span>
         </div>
         <button
           onClick={toggleTheme}
           className="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-          title="Toggle theme"
+          title="Alternar tema"
         >
           {isDark ? <Sun size={17} /> : <Moon size={17} />}
         </button>

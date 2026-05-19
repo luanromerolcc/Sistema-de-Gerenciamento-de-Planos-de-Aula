@@ -11,7 +11,6 @@ const TEXTAREA_BASE = 'w-full px-3.5 py-2.5 border rounded-lg bg-white dark:bg-s
 const TEXTAREA_NORMAL = 'border-slate-300 dark:border-slate-500 focus:ring-indigo-500 dark:focus:ring-indigo-400'
 const TEXTAREA_ERROR = 'border-red-400 dark:border-red-500 focus:ring-red-400 dark:focus:ring-red-500'
 
-
 function FieldError({ error }) {
   if (!error) return null
   return <p className="text-xs text-red-500 dark:text-red-400 mt-1">{error}</p>
@@ -20,15 +19,15 @@ function FieldError({ error }) {
 function validate(data) {
   const errors = {}
   if (!data.title || data.title.trim().length < 3)
-    errors.title = 'Title must be at least 3 characters'
+    errors.title = 'O título deve ter pelo menos 3 caracteres'
   if (!data.discipline || data.discipline.trim().length < 2)
-    errors.discipline = 'Discipline must be at least 2 characters'
+    errors.discipline = 'A disciplina deve ter pelo menos 2 caracteres'
   if (!data.summary || data.summary.trim().length < 10)
-    errors.summary = 'Summary must be at least 10 characters'
+    errors.summary = 'O resumo deve ter pelo menos 10 caracteres'
   if (!data.contents || data.contents.trim().length < 10)
-    errors.contents = 'Contents must be at least 10 characters'
+    errors.contents = 'O conteúdo deve ter pelo menos 10 caracteres'
   if (!data.scheduledAt || data.scheduledAt.trim().length === 0)
-    errors.scheduledAt = 'Scheduled date is required'
+    errors.scheduledAt = 'A data prevista é obrigatória'
   return errors
 }
 
@@ -40,15 +39,15 @@ function parseApiErrors(error) {
     })
     return errors
   }
-  return { _form: error.data?.error || error.message || 'Failed to save plan' }
+  return { _form: error.data?.error || error.message || 'Falha ao salvar o plano' }
 }
 
 function humanizeZodMessage(msg) {
   return msg
-    .replace(/String must contain at least (\d+) character\(s\)/, 'Must be at least $1 characters')
-    .replace(/String must contain at most (\d+) character\(s\)/, 'Must be at most $1 characters')
-    .replace(/Required/, 'This field is required')
-    .replace(/Invalid datetime/, 'Invalid date format')
+    .replace(/String must contain at least (\d+) character\(s\)/, 'Deve ter pelo menos $1 caracteres')
+    .replace(/String must contain at most (\d+) character\(s\)/, 'Deve ter no máximo $1 caracteres')
+    .replace(/Required/, 'Este campo é obrigatório')
+    .replace(/Invalid datetime/, 'Formato de data inválido')
 }
 
 export default function LessonPlanForm() {
@@ -150,20 +149,19 @@ export default function LessonPlanForm() {
   return (
     <div className="max-w-2xl mx-auto space-y-4">
       <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-50">
-        {isEdit ? 'Edit Lesson Plan' : 'Create New Lesson Plan'}
+        {isEdit ? 'Editar Plano de Aula' : 'Novo Plano de Aula'}
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Basic Info */}
         <Card>
           <CardHeader>
-            <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300">Basic Information</h3>
+            <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300">Informações Básicas</h3>
           </CardHeader>
           <CardBody className="space-y-3">
             <div>
               <Input
                 name="title"
-                placeholder="Lesson plan title *"
+                placeholder="Título do plano *"
                 value={formData.title}
                 onChange={handleInputChange}
               />
@@ -172,7 +170,7 @@ export default function LessonPlanForm() {
             <div>
               <Input
                 name="discipline"
-                placeholder="Discipline / Subject *"
+                placeholder="Disciplina / Matéria *"
                 value={formData.discipline}
                 onChange={handleInputChange}
               />
@@ -181,7 +179,7 @@ export default function LessonPlanForm() {
             <div>
               <Input
                 name="objective"
-                placeholder="Learning objective"
+                placeholder="Objetivo de aprendizagem"
                 value={formData.objective}
                 onChange={handleInputChange}
               />
@@ -190,7 +188,7 @@ export default function LessonPlanForm() {
             <div>
               <textarea
                 name="summary"
-                placeholder="Lesson summary * (min. 10 characters)"
+                placeholder="Resumo da aula * (mín. 10 caracteres)"
                 value={formData.summary}
                 onChange={handleInputChange}
                 className={`${TEXTAREA_BASE} ${fieldErrors.summary ? TEXTAREA_ERROR : TEXTAREA_NORMAL}`}
@@ -201,16 +199,15 @@ export default function LessonPlanForm() {
           </CardBody>
         </Card>
 
-        {/* Content */}
         <Card>
           <CardHeader>
-            <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300">Content & Details</h3>
+            <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300">Conteúdo e Detalhes</h3>
           </CardHeader>
           <CardBody className="space-y-3">
             <div>
               <textarea
                 name="contents"
-                placeholder="Detailed lesson content * (min. 10 characters)"
+                placeholder="Conteúdo detalhado da aula * (mín. 10 caracteres)"
                 value={formData.contents}
                 onChange={handleInputChange}
                 className={`${TEXTAREA_BASE} ${fieldErrors.contents ? TEXTAREA_ERROR : TEXTAREA_NORMAL}`}
@@ -220,18 +217,18 @@ export default function LessonPlanForm() {
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
-                Tags (comma-separated)
+                Tags (separadas por vírgula)
               </label>
               <Input
                 name="tags"
-                placeholder="e.g. mathematics, algebra, grade-9"
+                placeholder="ex: matemática, álgebra, 9º-ano"
                 value={Array.isArray(formData.tags) ? formData.tags.join(', ') : formData.tags}
                 onChange={handleInputChange}
               />
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
-                Scheduled date
+                Data prevista
               </label>
               <Input
                 name="scheduledAt"
@@ -244,10 +241,9 @@ export default function LessonPlanForm() {
           </CardBody>
         </Card>
 
-        {/* AI Recommendations */}
         <Card>
           <CardHeader>
-            <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300">AI Recommendations</h3>
+            <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300">Assistente de IA</h3>
           </CardHeader>
           <CardBody>
             <SmartAssistPanel
@@ -259,20 +255,18 @@ export default function LessonPlanForm() {
           </CardBody>
         </Card>
 
-        {/* General form error */}
         {fieldErrors._form && (
           <div className="px-3.5 py-2.5 rounded-lg bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800">
             <p className="text-sm text-red-700 dark:text-red-300">{fieldErrors._form}</p>
           </div>
         )}
 
-        {/* Submit */}
         <CardFooter className="border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900">
           <Button type="button" variant="outline" onClick={() => navigate('/plans')}>
-            Cancel
+            Cancelar
           </Button>
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Saving...' : isEdit ? 'Update Plan' : 'Create Plan'}
+            {isSubmitting ? 'Salvando...' : isEdit ? 'Salvar Alterações' : 'Criar Plano'}
           </Button>
         </CardFooter>
       </form>
