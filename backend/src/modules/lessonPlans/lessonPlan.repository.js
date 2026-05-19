@@ -26,7 +26,9 @@ export async function findAll({
   let searchFilter = ''
   if (search) {
     searchFilter = search
-      .split(' ')
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((w) => w.replace(/[^a-zA-ZÀ-ÿ0-9]/g, '')) // strip chars that break to_tsquery syntax
       .filter(Boolean)
       .map((w) => `${w}:*`)
       .join(' & ')

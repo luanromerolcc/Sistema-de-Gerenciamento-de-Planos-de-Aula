@@ -17,6 +17,7 @@ export async function recommendStream(request, reply) {
   try {
     const data = aiRecommendSchema.parse(request.query)
 
+    reply.raw.socket?.setTimeout(30000) // abort if Groq stalls for 30s
     reply.raw.writeHead(200, {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',

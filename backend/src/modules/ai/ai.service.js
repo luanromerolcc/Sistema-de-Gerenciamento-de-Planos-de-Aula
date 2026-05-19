@@ -25,7 +25,8 @@ Retorne um JSON com exatamente este formato:
 }
 
 function cacheKey({ title, discipline, summary }) {
-  const hash = createHash('md5').update(`${title}||${discipline}||${summary}`).digest('hex')
+  const normalized = `${title.trim()}||${discipline.trim().toLowerCase()}||${summary.trim()}`
+  const hash = createHash('md5').update(normalized).digest('hex')
   return `ai:recommend:${hash}`
 }
 

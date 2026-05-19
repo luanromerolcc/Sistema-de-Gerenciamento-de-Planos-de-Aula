@@ -24,6 +24,10 @@ model LessonPlan {
 
   versions    LessonPlanVersion[]
   auditLogs   AuditLog[]
+
+  @@index([discipline])
+  @@index([scheduledAt])
+  @@index([createdAt])
 }
 
 model LessonPlanVersion {
