@@ -4,25 +4,16 @@ import { api } from '../services/api'
 export function useSmartAssist() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
-  const [tokens, setTokens] = useState('')
   const [isCached, setIsCached] = useState(false)
 
-  const stream = useCallback(async (data, onToken, onDone) => {
+  const stream = useCallback(async (data, onDone) => {
     setIsLoading(true)
     setError(null)
-    setTokens('')
     setIsCached(false)
 
     try {
-      const url = api.ai.streamRecommendation(data)
       const qs = new URLSearchParams(data).toString()
-      const eventSource = new EventSource(`${url}?${qs}`)
-
-      eventSource.addEventListener('token', (event) => {
-        const token = event.data
-        setTokens((prev) => prev + token)
-        onToken?.(token)
-      })
+      const eventSource = new EventSource(`${api.ai.streamUrl()}?${qs}`)
 
       eventSource.addEventListener('done', (event) => {
         const result = JSON.parse(event.data)
@@ -68,7 +59,6 @@ export function useSmartAssist() {
     getRecommendation,
     isLoading,
     error,
-    tokens,
     isCached,
   }
 }

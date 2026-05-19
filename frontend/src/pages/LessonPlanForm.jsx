@@ -1,11 +1,54 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { useLessonPlan, useCreateLessonPlan, useUpdateLessonPlan } from '../hooks/useLessonPlans'
-import { useSmartAssist } from '../hooks/useSmartAssist'
 import { Card, CardBody, CardHeader, CardFooter } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import { SkeletonLoader } from '../components/ui/SkeletonLoader'
+import SmartAssistPanel from '../components/SmartAssistPanel'
+
+const TEXTAREA_BASE = 'w-full px-3.5 py-2.5 border rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-50 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:border-transparent transition-colors text-sm resize-none'
+const TEXTAREA_NORMAL = 'border-slate-300 dark:border-slate-500 focus:ring-indigo-500 dark:focus:ring-indigo-400'
+const TEXTAREA_ERROR = 'border-red-400 dark:border-red-500 focus:ring-red-400 dark:focus:ring-red-500'
+
+function FieldError({ error }) {
+  if (!error) return null
+  return <p className="text-xs text-red-500 dark:text-red-400 mt-1">{error}</p>
+}
+
+function validate(data) {
+  const errors = {}
+  if (!data.title || data.title.trim().length < 3)
+    errors.title = 'Title must be at least 3 characters'
+  if (!data.discipline || data.discipline.trim().length < 2)
+    errors.discipline = 'Discipline must be at least 2 characters'
+  if (!data.summary || data.summary.trim().length < 10)
+    errors.summary = 'Summary must be at least 10 characters'
+  if (!data.contents || data.contents.trim().length < 10)
+    errors.contents = 'Contents must be at least 10 characters'
+  if (!data.scheduledAt || data.scheduledAt.trim().length === 0)
+    errors.scheduledAt = 'Scheduled date is required'
+  return errors
+}
+
+function parseApiErrors(error) {
+  if (error.data?.issues?.length) {
+    const errors = {}
+    error.data.issues.forEach(({ path, message }) => {
+      errors[path] = humanizeZodMessage(message)
+    })
+    return errors
+  }
+  return { _form: error.data?.error || error.message || 'Failed to save plan' }
+}
+
+function humanizeZodMessage(msg) {
+  return msg
+    .replace(/String must contain at least (\d+) character\(s\)/, 'Must be at least $1 characters')
+    .replace(/String must contain at most (\d+) character\(s\)/, 'Must be at most $1 characters')
+    .replace(/Required/, 'This field is required')
+    .replace(/Invalid datetime/, 'Invalid date format')
+}
 
 export default function LessonPlanForm() {
   const navigate = useNavigate()
@@ -15,19 +58,18 @@ export default function LessonPlanForm() {
   const { data: existingPlan, isLoading: isLoadingPlan } = useLessonPlan(id)
   const createMutation = useCreateLessonPlan()
   const updateMutation = useUpdateLessonPlan()
-  const { getRecommendation, isLoading: isLoadingAI } = useSmartAssist()
 
   const [formData, setFormData] = useState({
     title: '',
     discipline: '',
     objective: '',
     summary: '',
-    content: '',
+    contents: '',
     tags: [],
     scheduledAt: '',
   })
 
-  const [aiRecommendations, setAiRecommendations] = useState(null)
+  const [fieldErrors, setFieldErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
@@ -37,9 +79,11 @@ export default function LessonPlanForm() {
         discipline: existingPlan.discipline || '',
         objective: existingPlan.objective || '',
         summary: existingPlan.summary || '',
-        content: existingPlan.content || '',
+        contents: existingPlan.contents || '',
         tags: existingPlan.tags || [],
-        scheduledAt: existingPlan.scheduledAt ? new Date(existingPlan.scheduledAt).toISOString().split('T')[0] : '',
+        scheduledAt: existingPlan.scheduledAt
+          ? new Date(existingPlan.scheduledAt).toISOString().split('T')[0]
+          : '',
       })
     }
   }, [existingPlan, isEdit])
@@ -47,30 +91,43 @@ export default function LessonPlanForm() {
   const handleInputChange = (e) => {
     const { name, value } = e.target
     setFormData({ ...formData, [name]: value })
+    if (fieldErrors[name]) {
+      setFieldErrors({ ...fieldErrors, [name]: undefined })
+    }
   }
 
-  const handleGetAIRecommendations = async () => {
-    try {
-      const result = await getRecommendation({
-        title: formData.title,
-        discipline: formData.discipline,
-        summary: formData.summary,
-      })
-      setAiRecommendations(result)
-    } catch (error) {
-      alert('Error getting AI recommendations: ' + error.message)
-    }
+  const handleAIApply = (result) => {
+    setFormData((prev) => ({
+      ...prev,
+      contents: result.contents || prev.contents,
+      tags: result.tags?.length
+        ? [...new Set([...prev.tags, ...result.tags])]
+        : prev.tags,
+    }))
+    setFieldErrors((prev) => ({ ...prev, contents: undefined }))
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+
+    const validationErrors = validate(formData)
+    if (Object.keys(validationErrors).length > 0) {
+      setFieldErrors(validationErrors)
+      return
+    }
+
     setIsSubmitting(true)
+    setFieldErrors({})
 
     try {
       const submitData = {
         ...formData,
-        tags: formData.tags.length ? formData.tags.split(',').map((t) => t.trim()) : [],
-        scheduledAt: formData.scheduledAt ? new Date(formData.scheduledAt).toISOString() : null,
+        tags: Array.isArray(formData.tags)
+          ? formData.tags
+          : formData.tags.split(',').map((t) => t.trim()).filter(Boolean),
+        scheduledAt: formData.scheduledAt
+          ? new Date(formData.scheduledAt).toISOString()
+          : null,
       }
 
       if (isEdit) {
@@ -81,7 +138,7 @@ export default function LessonPlanForm() {
 
       navigate('/plans')
     } catch (error) {
-      alert('Error saving plan: ' + error.message)
+      setFieldErrors(parseApiErrors(error))
     } finally {
       setIsSubmitting(false)
     }
@@ -90,137 +147,127 @@ export default function LessonPlanForm() {
   if (isLoadingPlan) return <SkeletonLoader count={6} height="h-12" />
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <h2 className="text-3xl font-bold">{isEdit ? 'Edit Lesson Plan' : 'Create New Lesson Plan'}</h2>
+    <div className="max-w-2xl mx-auto space-y-4">
+      <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-50">
+        {isEdit ? 'Edit Lesson Plan' : 'Create New Lesson Plan'}
+      </h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Basic Info */}
         <Card>
           <CardHeader>
-            <h3 className="font-semibold">Basic Information</h3>
+            <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300">Basic Information</h3>
           </CardHeader>
-          <CardBody className="space-y-4">
-            <Input
-              name="title"
-              placeholder="Lesson Plan Title"
-              value={formData.title}
-              onChange={handleInputChange}
-              required
-            />
-            <Input
-              name="discipline"
-              placeholder="Discipline / Subject"
-              value={formData.discipline}
-              onChange={handleInputChange}
-              required
-            />
-            <Input
-              name="objective"
-              placeholder="Learning Objective"
-              value={formData.objective}
-              onChange={handleInputChange}
-            />
-            <textarea
-              name="summary"
-              placeholder="Lesson Summary"
-              value={formData.summary}
-              onChange={handleInputChange}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-white dark:bg-slate-800 dark:border-slate-600 text-slate-900 dark:text-slate-50 placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
-              rows="4"
-            />
+          <CardBody className="space-y-3">
+            <div>
+              <Input
+                name="title"
+                placeholder="Lesson plan title *"
+                value={formData.title}
+                onChange={handleInputChange}
+              />
+              <FieldError error={fieldErrors.title} />
+            </div>
+            <div>
+              <Input
+                name="discipline"
+                placeholder="Discipline / Subject *"
+                value={formData.discipline}
+                onChange={handleInputChange}
+              />
+              <FieldError error={fieldErrors.discipline} />
+            </div>
+            <div>
+              <Input
+                name="objective"
+                placeholder="Learning objective"
+                value={formData.objective}
+                onChange={handleInputChange}
+              />
+              <FieldError error={fieldErrors.objective} />
+            </div>
+            <div>
+              <textarea
+                name="summary"
+                placeholder="Lesson summary * (min. 10 characters)"
+                value={formData.summary}
+                onChange={handleInputChange}
+                className={`${TEXTAREA_BASE} ${fieldErrors.summary ? TEXTAREA_ERROR : TEXTAREA_NORMAL}`}
+                rows="3"
+              />
+              <FieldError error={fieldErrors.summary} />
+            </div>
           </CardBody>
         </Card>
 
         {/* Content */}
         <Card>
           <CardHeader>
-            <h3 className="font-semibold">Content & Details</h3>
+            <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300">Content & Details</h3>
           </CardHeader>
-          <CardBody className="space-y-4">
-            <textarea
-              name="content"
-              placeholder="Detailed lesson content..."
-              value={formData.content}
-              onChange={handleInputChange}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-white dark:bg-slate-800 dark:border-slate-600 text-slate-900 dark:text-slate-50 placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
-              rows="6"
-            />
+          <CardBody className="space-y-3">
             <div>
-              <label className="block text-sm font-medium mb-2">Tags (comma-separated)</label>
+              <textarea
+                name="contents"
+                placeholder="Detailed lesson content * (min. 10 characters)"
+                value={formData.contents}
+                onChange={handleInputChange}
+                className={`${TEXTAREA_BASE} ${fieldErrors.contents ? TEXTAREA_ERROR : TEXTAREA_NORMAL}`}
+                rows="5"
+              />
+              <FieldError error={fieldErrors.contents} />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
+                Tags (comma-separated)
+              </label>
               <Input
                 name="tags"
-                placeholder="e.g., mathematics, algebra, grade-9"
+                placeholder="e.g. mathematics, algebra, grade-9"
                 value={Array.isArray(formData.tags) ? formData.tags.join(', ') : formData.tags}
                 onChange={handleInputChange}
               />
             </div>
-            <Input
-              name="scheduledAt"
-              type="date"
-              value={formData.scheduledAt}
-              onChange={handleInputChange}
-            />
+            <div>
+              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
+                Scheduled date
+              </label>
+              <Input
+                name="scheduledAt"
+                type="date"
+                value={formData.scheduledAt}
+                onChange={handleInputChange}
+              />
+              <FieldError error={fieldErrors.scheduledAt} />
+            </div>
           </CardBody>
         </Card>
 
         {/* AI Recommendations */}
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold">AI Recommendations</h3>
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={handleGetAIRecommendations}
-                disabled={isLoadingAI || !formData.title || !formData.discipline}
-              >
-                {isLoadingAI ? 'Loading...' : '✨ Get Suggestions'}
-              </Button>
-            </div>
+            <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300">AI Recommendations</h3>
           </CardHeader>
-          {aiRecommendations && (
-            <CardBody className="space-y-4">
-              <div>
-                <h4 className="font-medium mb-2">Suggested Contents</h4>
-                <p className="text-sm text-slate-600 dark:text-slate-400">{aiRecommendations.contents}</p>
-              </div>
-              <div>
-                <h4 className="font-medium mb-2">Recommended Resources</h4>
-                <p className="text-sm text-slate-600 dark:text-slate-400">{aiRecommendations.resources}</p>
-              </div>
-              {aiRecommendations.tags && (
-                <div>
-                  <h4 className="font-medium mb-2">Suggested Tags</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {aiRecommendations.tags.map((tag) => (
-                      <Button
-                        key={tag}
-                        type="button"
-                        variant="neutral"
-                        size="sm"
-                        onClick={() => {
-                          if (!formData.tags.includes(tag)) {
-                            setFormData({
-                              ...formData,
-                              tags: Array.isArray(formData.tags) ? [...formData.tags, tag] : [tag],
-                            })
-                          }
-                        }}
-                      >
-                        + {tag}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </CardBody>
-          )}
+          <CardBody>
+            <SmartAssistPanel
+              title={formData.title}
+              discipline={formData.discipline}
+              summary={formData.summary}
+              onApply={handleAIApply}
+            />
+          </CardBody>
         </Card>
 
+        {/* General form error */}
+        {fieldErrors._form && (
+          <div className="px-3.5 py-2.5 rounded-lg bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800">
+            <p className="text-sm text-red-700 dark:text-red-300">{fieldErrors._form}</p>
+          </div>
+        )}
+
         {/* Submit */}
-        <CardFooter>
-          <Button type="button" variant="secondary" onClick={() => navigate('/plans')}>
+        <CardFooter className="border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900">
+          <Button type="button" variant="outline" onClick={() => navigate('/plans')}>
             Cancel
           </Button>
           <Button type="submit" disabled={isSubmitting}>
