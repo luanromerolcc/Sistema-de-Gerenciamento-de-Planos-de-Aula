@@ -35,7 +35,7 @@ Plataforma full-stack para criação, organização e consulta de planos de aula
 | Audit log completo | Toda operação registrada: CREATE, UPDATE, DELETE, AI_ASSIST, RESTORE_VERSION |
 | Exportação PDF | Gerado via Puppeteer com formatação |
 | Exportação iCal | Integração com Google Calendar e Outlook |
-| Dashboard analítico | Cards de métricas + gráfico de barras por disciplina |
+| Dashboard analítico | Gráfico de barras por disciplina + atividade recente |
 | Full-text search PostgreSQL | tsvector com ts_rank, não ILIKE |
 | Duplicar plano como template | Reutilizar estrutura de planos existentes |
 | Dark mode com persistência | Preferência do SO + localStorage |
@@ -149,6 +149,8 @@ lesson-plan-manager/
 │   │   ├── schema.prisma
 │   │   └── migrations/
 │   ├── tests/
+│   │   ├── unit/
+│   │   │   └── lessonPlan.service.test.js  # 10 casos com mocks ESM
 │   │   └── integration/
 │   │       ├── health.test.js
 │   │       └── lessonPlans.test.js
@@ -247,8 +249,8 @@ POST   /api/lesson-plans                     Cria plano
 GET    /api/lesson-plans/:id                 Obtém plano
 PUT    /api/lesson-plans/:id                 Atualiza (cria snapshot de versão automaticamente)
 DELETE /api/lesson-plans/:id                 Remove
-GET    /api/lesson-plans/:id/versions        Histórico de versões
-POST   /api/lesson-plans/:id/restore/:vid    Restaura versão anterior
+GET    /api/lesson-plans/:id/versions                      Histórico de versões
+POST   /api/lesson-plans/:id/versions/:versionId/restore  Restaura versão anterior
 POST   /api/lesson-plans/:id/duplicate       Duplica como template
 GET    /api/lesson-plans/:id/export/pdf      Download PDF
 GET    /api/lesson-plans/:id/export/ical     Download .ics
@@ -324,10 +326,20 @@ curl http://localhost:3000/health
 ## Testes
 
 ### Backend (Jest + Supertest)
+
+Os testes unitários rodam sem dependências externas. Os testes de integração requerem PostgreSQL e Redis — execute dentro do container para garantir a resolução dos hostnames:
+
 ```bash
-cd backend
-npm test              # todos os testes
-npm run test:coverage # com relatório de cobertura
+# Testes unitários (sem banco)
+cd backend && npm test -- --testPathPattern=unit
+
+# Todos os testes (requer Docker rodando)
+docker exec backend-dev sh -c \
+  "NODE_OPTIONS=--experimental-vm-modules node_modules/.bin/jest --forceExit"
+
+# Com cobertura
+docker exec backend-dev sh -c \
+  "NODE_OPTIONS=--experimental-vm-modules node_modules/.bin/jest --coverage --forceExit"
 ```
 
 ### E2E (Cypress)
@@ -389,7 +401,7 @@ Para o raciocínio detalhado por trás de cada escolha de tecnologia e arquitetu
 
 - **Autenticação**: não implementada (fora do escopo do desafio). Em produção, JWT com refresh tokens ou OAuth2. Todos os endpoints são públicos intencionalmente para facilitar a avaliação.
 - **TypeScript**: projeto em JavaScript puro. A validação Zod cobre type-safety em runtime. Migração para TS seria o primeiro passo antes de escalar o time.
-- **Testes unitários de serviço**: cobertura atual foca em integração (health, CRUD via HTTP). Mocks de Prisma para testes unitários do `lessonPlan.service.js` estão pendentes.
+- **Testes de integração localmente**: os testes de integração (Jest + Supertest) requerem conexão com PostgreSQL e Redis. Fora do Docker, as variáveis `DATABASE_URL` e `REDIS_URL` usam hostnames de rede interna (`postgres`, `redis`) que não resolvem na máquina host. Execute dentro do container (`docker exec backend-dev ...`) ou consulte o [TROUBLESHOOTING.md](./TROUBLESHOOTING.md).
 
 ---
 

@@ -77,7 +77,7 @@ docker-compose up       # Recrie do zero
 npm run db:migrate:dev  # Recrie schema
 ```
 
-#### "Module not found: @anthropic-ai/sdk"
+#### "Module not found: groq-sdk"
 ```bash
 # Reinstale dependências
 cd backend
@@ -158,6 +158,26 @@ const { control } = useForm({
 
 ### Testes
 
+#### Testes de integração falham com "Authentication failed" ou timeout
+
+Os testes de integração usam `DATABASE_URL=postgresql://user:pass@postgres:5432/lessonplans` — o hostname `postgres` é um alias de rede interna do Docker que não resolve na máquina host.
+
+```bash
+# Solução: execute os testes dentro do container
+docker exec backend-dev sh -c \
+  "NODE_OPTIONS=--experimental-vm-modules node_modules/.bin/jest --forceExit --detectOpenHandles"
+
+# Se node_modules não estiver no container:
+docker exec backend-dev npm install
+# e então execute o comando acima novamente
+```
+
+Os testes unitários (`tests/unit/`) não precisam de banco e rodam normalmente fora do Docker:
+```bash
+cd backend
+NODE_OPTIONS=--experimental-vm-modules npx jest --testPathPattern=unit --forceExit
+```
+
 #### "Jest: Cannot find module"
 ```bash
 # Verifique se está usando ESM
@@ -236,12 +256,13 @@ logger.info({ userId: 123, action: 'CREATE' }, 'User created')
 logger.error({ err }, 'Error occurred')
 ```
 
-**P: Como integro com a API real da Anthropic?**  
-R:
-1. Obtenha chave em https://console.anthropic.com
-2. Adicione em `backend/.env`: `ANTHROPIC_API_KEY=sk-ant-xxxxx`
-3. Verifique o import: `import Anthropic from '@anthropic-ai/sdk'`
-4. Implemente chamada real em `ai.service.js`
+**P: Como mudo o modelo de IA?**  
+R: O projeto usa a API da Groq. Para trocar o modelo, edite `backend/.env`:
+```env
+GROQ_MODEL=llama-3.3-70b-versatile  # padrão
+# Outros modelos disponíveis: mixtral-8x7b-32768, gemma2-9b-it
+```
+Obtenha ou revogue sua chave em https://console.groq.com
 
 ---
 
@@ -346,4 +367,4 @@ Se tiver problema que não consta aqui:
 
 ---
 
-**Última atualização**: 15 de maio de 2026
+**Última atualização**: 19 de maio de 2026
