@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { FileText, CalendarDays, Clock, Sparkles } from 'lucide-react'
 import { Card, CardBody } from '../components/ui/Card'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
@@ -8,13 +7,6 @@ import { SkeletonGrid } from '../components/ui/SkeletonLoader'
 import EmptyState from '../components/EmptyState'
 import DisciplineChart from '../components/DisciplineChart'
 import { api } from '../services/api'
-
-const ACCENT_COLORS = {
-  total:     { bg: 'from-pink-500 to-pink-600',    icon: 'text-pink-600' },
-  month:     { bg: 'from-rose-500 to-rose-600',    icon: 'text-rose-600' },
-  scheduled: { bg: 'from-purple-500 to-purple-600', icon: 'text-purple-600' },
-  ai:        { bg: 'from-violet-500 to-violet-600', icon: 'text-violet-600' },
-}
 
 export default function Dashboard() {
   const navigate = useNavigate()
@@ -36,7 +28,7 @@ export default function Dashboard() {
     fetchStats()
   }, [])
 
-  if (loading) return <SkeletonGrid count={4} className="grid-cols-1 md:grid-cols-2 lg:grid-cols-4" />
+  if (loading) return <SkeletonGrid count={1} className="grid-cols-1" />
 
   if (error)
     return (
@@ -63,43 +55,14 @@ export default function Dashboard() {
 
       {hasPlans ? (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <StatCard
-            label="Total de Planos"
-            value={stats?.totalPlans ?? 0}
-            icon={<FileText size={18} />}
-            accent={ACCENT_COLORS.total}
-            onView={() => navigate('/plans')}
-          />
-          <StatCard
-            label="Este Mês"
-            value={stats?.thisMonth ?? 0}
-            icon={<CalendarDays size={18} />}
-            accent={ACCENT_COLORS.month}
-            onView={() => navigate('/plans')}
-          />
-          <StatCard
-            label="Agendados"
-            value={stats?.scheduled ?? 0}
-            icon={<Clock size={18} />}
-            accent={ACCENT_COLORS.scheduled}
-            onView={() => navigate('/plans')}
-          />
-
-          <StatCard
-            label="Com Assistência de IA"
-            value={stats?.aiAssisted ?? 0}
-            icon={<Sparkles size={18} />}
-            accent={ACCENT_COLORS.ai}
-            onView={() => navigate('/plans')}
-          />
-          <div className="md:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5">
+          <div className="md:col-span-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5">
             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mb-3 uppercase tracking-wide">
               Planos por Disciplina
             </p>
             <DisciplineChart data={stats?.byDiscipline ?? []} />
           </div>
 
-          <div className="md:col-span-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5">
+          <div className="md:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5">
             <div className="flex items-center justify-between mb-4">
               <p className="text-sm font-medium text-slate-700 dark:text-slate-300">Atividade Recente</p>
               <button
@@ -143,24 +106,6 @@ export default function Dashboard() {
           />
         </div>
       )}
-    </div>
-  )
-}
-
-function StatCard({ label, value, icon, onView }) {
-  return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5">
-      <div className="flex items-start justify-between mb-3">
-        <span className="text-slate-400 dark:text-slate-500">{icon}</span>
-        <button
-          onClick={onView}
-          className="text-xs text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-        >
-          Ver
-        </button>
-      </div>
-      <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mb-1">{label}</p>
-      <p className="text-[28px] font-semibold text-slate-900 dark:text-slate-50 leading-none">{value}</p>
     </div>
   )
 }

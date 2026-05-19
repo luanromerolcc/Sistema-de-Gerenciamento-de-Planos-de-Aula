@@ -40,7 +40,7 @@ describe('Lesson Plans CRUD', () => {
     const response = await request(app.server).get('/api/lesson-plans')
 
     expect(response.status).toBe(200)
-    expect(Array.isArray(response.body.data)).toBe(true)
+    expect(Array.isArray(response.body.plans)).toBe(true)
   })
 
   it('should retrieve a single lesson plan', async () => {

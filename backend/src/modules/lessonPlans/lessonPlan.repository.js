@@ -1,4 +1,5 @@
 import { prisma } from '../../config/prisma.js'
+import { Prisma } from '@prisma/client'
 
 export async function findAll({
   discipline,
@@ -35,18 +36,22 @@ export async function findAll({
 
   // Use raw for full-text; otherwise use standard Prisma query
   if (search && searchFilter) {
+    const disciplineClause = discipline
+      ? Prisma.sql`AND discipline ILIKE ${'%' + discipline + '%'}`
+      : Prisma.empty
+
     const [plans, countResult] = await Promise.all([
       prisma.$queryRaw`
         SELECT id, title, objective, summary, "scheduledAt", discipline, contents, resources, tags, "createdAt", "updatedAt"
-        FROM lesson_plans
-        WHERE search_vector @@ to_tsquery('portuguese', ${searchFilter})
-        ${discipline ? prisma.$queryRaw`AND discipline ILIKE ${'%' + discipline + '%'}` : prisma.$queryRaw``}
-        ORDER BY ts_rank(search_vector, to_tsquery('portuguese', ${searchFilter})) DESC
+        FROM "LessonPlan"
+        WHERE "searchVector" @@ to_tsquery('portuguese', ${searchFilter})
+        ${disciplineClause}
+        ORDER BY ts_rank("searchVector", to_tsquery('portuguese', ${searchFilter})) DESC
         LIMIT ${pageSize} OFFSET ${skip}
       `,
       prisma.$queryRaw`
-        SELECT COUNT(*)::int as count FROM lesson_plans
-        WHERE search_vector @@ to_tsquery('portuguese', ${searchFilter})
+        SELECT COUNT(*)::int as count FROM "LessonPlan"
+        WHERE "searchVector" @@ to_tsquery('portuguese', ${searchFilter})
       `,
     ])
     return { plans, total: countResult[0]?.count ?? 0, page, pageSize }
@@ -83,7 +88,7 @@ export async function create(data) {
   return prisma.lessonPlan.create({
     data: {
       ...data,
-      scheduledAt: data.scheduledAt ? new Date(data.scheduledAt) : null,
+      scheduledAt: new Date(data.scheduledAt),
     },
   })
 }

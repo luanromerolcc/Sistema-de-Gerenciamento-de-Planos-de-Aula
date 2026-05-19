@@ -61,7 +61,7 @@ jobs:
         env:
           DATABASE_URL: postgresql://user:pass@localhost:5432/lessonplans
           REDIS_URL: redis://localhost:6379
-          ANTHROPIC_API_KEY: sk-ant-test
+          GROQ_API_KEY: gsk_test_fake_key_for_ci
           NODE_ENV: test
         run: cd backend && npm test -- --coverage
         continue-on-error: ${{ github.ref != 'refs/heads/main' }}

@@ -20,6 +20,8 @@ export async function buildApp() {
 
   // Plugins
   await fastify.register(cors, {
+    // origin: true aceita qualquer origem — adequado para dev/avaliação.
+    // Em produção, substituir por: origin: ['https://app.exemplo.com']
     origin: true,
     credentials: true,
   })
@@ -88,5 +90,6 @@ export async function buildApp() {
   // Connect Redis (non-blocking)
   await connectRedis()
 
+  await fastify.ready()
   return fastify
 }

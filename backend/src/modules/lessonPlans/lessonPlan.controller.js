@@ -47,8 +47,8 @@ export async function getVersions(request, reply) {
 }
 
 export async function restoreVersion(request, reply) {
-  const { id, vid } = restoreParamSchema.parse(request.params)
-  const plan = await service.restorePlanVersion(id, vid)
+  const { id, versionId } = restoreParamSchema.parse(request.params)
+  const plan = await service.restorePlanVersion(id, versionId)
   return reply.send(plan)
 }
 

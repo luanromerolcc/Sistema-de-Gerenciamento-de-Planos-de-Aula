@@ -8,7 +8,7 @@ export async function lessonPlanRoutes(fastify) {
   fastify.put('/:id', { schema: lessonPlanSchema.update }, controller.update);
   fastify.delete('/:id', { schema: lessonPlanSchema.delete }, controller.remove);
   fastify.get('/:id/versions', controller.getVersions);
-  fastify.post('/:id/restore/:vid', controller.restoreVersion);
+  fastify.post('/:id/versions/:versionId/restore', controller.restoreVersion);
   fastify.post('/:id/duplicate', controller.duplicate);
   fastify.get('/:id/export/pdf', controller.exportPdf);
   fastify.get('/:id/export/ical', controller.exportIcal);

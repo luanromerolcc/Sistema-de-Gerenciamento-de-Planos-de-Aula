@@ -4,7 +4,7 @@ export const createLessonPlanSchema = z.object({
   title: z.string().min(3).max(200),
   objective: z.string().max(500).optional().or(z.literal('')),
   summary: z.string().min(10),
-  scheduledAt: z.string().datetime().optional().nullable(),
+  scheduledAt: z.string().datetime(),
   discipline: z.string().min(2).max(100),
   contents: z.string().min(10),
   resources: z.string().default(''),
@@ -38,7 +38,7 @@ export const idParamSchema = z.object({
 
 export const restoreParamSchema = z.object({
   id: z.string().cuid(),
-  vid: z.string().cuid(),
+  versionId: z.string().cuid(),
 })
 
 export const lessonPlanSchema = {
@@ -56,12 +56,12 @@ export const lessonPlanSchema = {
   create: {
     body: {
       type: 'object',
-      required: ['title', 'summary', 'discipline', 'contents'],
+      required: ['title', 'summary', 'discipline', 'contents', 'scheduledAt'],
       properties: {
         title: { type: 'string' },
         objective: { type: 'string' },
         summary: { type: 'string' },
-        scheduledAt: { type: ['string', 'null'] },
+        scheduledAt: { type: 'string', format: 'date-time' },
         discipline: { type: 'string' },
         contents: { type: 'string' },
         resources: { type: 'string' },
