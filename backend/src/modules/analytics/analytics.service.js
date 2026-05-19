@@ -7,36 +7,43 @@ export async function getSummary() {
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59)
     const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
 
-    const [totalPlans, plansThisMonth, upcomingPlans, byDisciplineRaw] = await Promise.all([
+    const [totalPlans, plansThisMonth, upcomingPlans, byDisciplineRaw, aiAssistedCount, recentPlansRaw] = await Promise.all([
       prisma.lessonPlan.count().catch(() => 0),
       prisma.lessonPlan.count({
         where: { scheduledAt: { gte: startOfMonth, lte: endOfMonth } },
       }).catch(() => 0),
-      prisma.lessonPlan.findMany({
+      prisma.lessonPlan.count({
         where: { scheduledAt: { gte: now, lte: weekFromNow } },
-        orderBy: { scheduledAt: 'asc' },
-        take: 5,
-        select: { id: true, title: true, discipline: true, scheduledAt: true },
-      }).catch(() => []),
+      }).catch(() => 0),
       prisma.lessonPlan.groupBy({
         by: ['discipline'],
         _count: { id: true },
         orderBy: { _count: { id: 'desc' } },
       }).catch(() => []),
+      prisma.auditLog.findMany({
+        where: { action: 'AI_ASSIST' },
+        distinct: ['lessonPlanId'],
+        select: { lessonPlanId: true },
+      }).catch(() => []),
+      prisma.lessonPlan.findMany({
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+        select: { id: true, title: true, discipline: true, createdAt: true },
+      }).catch(() => []),
     ])
 
     const byDiscipline = byDisciplineRaw.map((row) => ({
-      discipline: row.discipline,
+      name: row.discipline,
       count: row._count.id,
     }))
 
     return {
       totalPlans,
       thisMonth: plansThisMonth,
-      scheduled: upcomingPlans.length,
-      aiAssisted: 0,
+      scheduled: upcomingPlans,
+      aiAssisted: new Set(aiAssistedCount.map(log => log.lessonPlanId)).size,
       byDiscipline,
-      recentPlans: upcomingPlans,
+      recentPlans: recentPlansRaw,
     }
   } catch (error) {
     console.error('Analytics error:', error)
